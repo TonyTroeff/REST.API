@@ -1,0 +1,19 @@
+services:
+  postgresql:
+    image: postgres:14.1
+    container_name: rest_api
+    volumes:
+      - rest_api_postgresql_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=tests_user
+      - POSTGRES_PASSWORD=123456-Aa
+
+volumes:
+  rest_api_postgresql_data:
+
+
+networks:
+  default:
+    name: rest_api

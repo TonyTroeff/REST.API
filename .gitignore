@@ -1,0 +1,14 @@
+# Editor directories and files
+.idea
+.vscode
+
+# C#
+[Bb]in/
+[Oo]bj/
+.vs/
+*.DotSettings.user
+*.csproj.user
+
+TestResults/
+
+appsettings.local.json
