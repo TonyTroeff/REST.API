@@ -1,7 +1,5 @@
 ﻿namespace Utilities;
 
-using System.Text;
-
 public class OperationResult
 {
     private readonly List<Error> _errors = new();
@@ -18,14 +16,7 @@ public class OperationResult
         return true;
     }
 
-    public override string ToString()
-    {
-        var sb = new StringBuilder();
-        foreach (var error in this._errors)
-            sb.AppendLine(error.Message);
-
-        return sb.ToString();
-    }
+    public override string ToString() => string.Join(Environment.NewLine, this._errors.Select(e => e.Message));
 }
 
 public class OperationResult<T> : OperationResult

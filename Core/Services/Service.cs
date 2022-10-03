@@ -47,8 +47,6 @@ public class Service<TEntity> : IService<TEntity>
     public async Task<OperationResult<IEnumerable<TEntity>>> GetManyAsync(CancellationToken cancellationToken, IQueryEntityOptions<TEntity> options = null)
     {
         var operationResult = new OperationResult<IEnumerable<TEntity>>();
-        operationResult.AddError(new Error { Message = "Some error." });
-        return operationResult;
 
         var allFilters = (options?.AdditionalFilters).OrEmptyIfNull().IgnoreNullValues().ToArray();
 
