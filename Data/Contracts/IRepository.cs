@@ -13,4 +13,5 @@ public interface IRepository<TEntity>
     Task<OperationResult<IEnumerable<TLayout>>> GetManyAsync<TLayout>(IEnumerable<Expression<Func<TEntity, bool>>> filters, Expression<Func<TEntity, TLayout>> projection, CancellationToken cancellationToken);
     Task<OperationResult> CreateAsync(TEntity entity, CancellationToken cancellationToken);
     Task<OperationResult> UpdateAsync(TEntity entity, CancellationToken cancellationToken);
+    Task<OperationResult> DeleteAsync(TEntity entity, CancellationToken cancellationToken);
 }

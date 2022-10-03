@@ -12,4 +12,5 @@ public interface IService<TEntity>
     Task<OperationResult<IEnumerable<TEntity>>> GetManyAsync(CancellationToken cancellationToken, IQueryEntityOptions<TEntity> options = null);
     Task<OperationResult<TEntity>> CreateAsync(TEntity entity, CancellationToken cancellationToken);
     Task<OperationResult<TEntity>> UpdateAsync(TEntity entity, CancellationToken cancellationToken);
+    Task<OperationResult> DeleteAsync(TEntity entity, CancellationToken cancellationToken);
 }

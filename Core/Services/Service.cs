@@ -47,6 +47,8 @@ public class Service<TEntity> : IService<TEntity>
     public async Task<OperationResult<IEnumerable<TEntity>>> GetManyAsync(CancellationToken cancellationToken, IQueryEntityOptions<TEntity> options = null)
     {
         var operationResult = new OperationResult<IEnumerable<TEntity>>();
+        operationResult.AddError(new Error { Message = "Some error." });
+        return operationResult;
 
         var allFilters = (options?.AdditionalFilters).OrEmptyIfNull().IgnoreNullValues().ToArray();
 
@@ -84,6 +86,17 @@ public class Service<TEntity> : IService<TEntity>
         if (!updateEntity.IsSuccessful) return operationResult.AppendErrors(updateEntity);
 
         return operationResult.WithData(entity);
+    }
+
+    public async Task<OperationResult> DeleteAsync(TEntity entity, CancellationToken cancellationToken)
+    {
+        var operationResult = new OperationResult();
+        if (!operationResult.ValidateNotNull(entity)) return operationResult;
+
+        var deleteEntity = await this._repository.DeleteAsync(entity, cancellationToken);
+        if (!deleteEntity.IsSuccessful) return operationResult.AppendErrors(deleteEntity);
+        
+        return operationResult;
     }
 
     private static Expression<Func<TEntity, bool>> ConstructIdFilter(Guid id) => x => x.Id == id;

@@ -53,4 +53,19 @@ public class ShopController : ControllerBase
         var viewModel = this._mapper.Map<ShopViewModel>(shop);
         return this.Ok(viewModel);
     }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<ActionResult> DeleteAsync([FromRoute] Guid id, CancellationToken cancellationToken)
+    {
+        var getShop = await this._shopService.GetAsync(id, cancellationToken);
+        if (!getShop.IsSuccessful) return this.BadRequest(getShop.ToString());
+
+        var shop = getShop.Data;
+        if (shop is null) return this.NotFound();
+
+        var deleteShop = await this._shopService.DeleteAsync(shop, cancellationToken);
+        if (!deleteShop.IsSuccessful) return this.BadRequest(deleteShop.ToString());
+
+        return this.NoContent();
+    }
 }
