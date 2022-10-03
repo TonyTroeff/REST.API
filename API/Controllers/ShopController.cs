@@ -28,7 +28,7 @@ public class ShopController : ControllerBase
         if (!create.IsSuccessful) return this.BadRequest(create.ToString());
 
         var viewModel = this._mapper.Map<ShopViewModel>(create.Data);
-        return this.Ok(viewModel);
+        return this.CreatedAtAction("GetById", new { id = create.Data.Id }, viewModel);
     }
 
     [HttpGet]
