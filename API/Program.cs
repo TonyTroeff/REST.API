@@ -1,11 +1,9 @@
-using System.Net;
 using System.Reflection;
 using API.Configuration;
+using API.Models.Configuration;
 using Core.Configuration;
 using Data.Configuration;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Utilities;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -52,6 +50,8 @@ builder.Services.AddControllers(
             options.ClientErrorMapping[StatusCodes.Status504GatewayTimeout] = new ClientErrorData { Link = "https://www.rfc-editor.org/rfc/rfc9110#section-15.6.5" };
             options.ClientErrorMapping[StatusCodes.Status505HttpVersionNotsupported] = new ClientErrorData { Link = "https://www.rfc-editor.org/rfc/rfc9110#section-15.6.6" };
 
+            // If you use data annotations for validation of your input model - preserve this segment here. It will return "422 Unprocessable entity" instead of "400 Bad request" when a validation rule is not fulfilled. 
+            /*
             options.InvalidModelStateResponseFactory = actionContext =>
             {
                 if (actionContext.ModelState.IsValid) throw new InvalidOperationException("The model state should be invalid.");
@@ -69,6 +69,7 @@ builder.Services.AddControllers(
 
                 return new ObjectResult(problemDetails) { StatusCode = data.StatusCode };
             };
+            */
         });
 
 // Configure the used database.
@@ -99,6 +100,7 @@ builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.ConfigureApiModelValidators();
 builder.Services.ConfigureServices();
 
 var app = builder.Build();
@@ -107,7 +109,12 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(
+        options =>
+        {
+            // Hide the "Schema" section since the correlation between Swagger and FluentValidation is simply missing.
+            options.DefaultModelsExpandDepth(-1);
+        });
 }
 
 app.UseCors();
