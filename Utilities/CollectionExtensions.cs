@@ -23,6 +23,14 @@ public static class CollectionExtensions
         return collection.Where(el => !el.Equals(default));
     }
 
+    public static IEnumerable<string> IgnoreNullOrWhitespaceValues(this IEnumerable<string> collection)
+    {
+        if (collection is null) 
+            throw new ArgumentNullException(nameof(collection));
+
+        return collection.Where(el => string.IsNullOrWhiteSpace(el) == false);
+    }
+
     public static IEnumerable<T> AsEnumerable<T>(this T value) => new [] { value };
 
     public static IEnumerable<T> ConcatenateWith<T>(this IEnumerable<T> a, IEnumerable<T> b)
