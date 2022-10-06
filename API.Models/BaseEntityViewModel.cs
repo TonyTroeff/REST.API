@@ -6,7 +6,6 @@ using API.Models.Hateoas;
 public class BaseEntityViewModel
 {
     public Guid Id { get; set; }
-    public long LastModified { get; set; }
     
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IEnumerable<HateoasLink> Links { get; set; }

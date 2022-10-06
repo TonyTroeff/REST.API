@@ -6,12 +6,6 @@ public static class VendorMediaTypes
     public const string ShopFull = $"{Prefix}.shop-full";
     public const string ShopMinified = $"{Prefix}.shop-minified";
 
-    public static string WithHateoas(string mediaType)
-    {
-        if (string.IsNullOrWhiteSpace(mediaType)) return string.Empty;
-        return $"{mediaType}.hateoas";
-    }
-
     public static string WithSuffix(string mediaType, string suffix)
     {
         if (string.IsNullOrWhiteSpace(mediaType)) return string.Empty;

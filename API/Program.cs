@@ -102,6 +102,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.ConfigureApiModelValidators();
 builder.Services.ConfigureServices();
+builder.Services.ConfigureContentNegotiation();
 
 var app = builder.Build();
 

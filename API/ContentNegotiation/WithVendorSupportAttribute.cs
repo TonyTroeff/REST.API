@@ -11,8 +11,8 @@ public class WithVendorSupportAttribute : ProducesAttribute
     {
         foreach (var t in supportedVendorMediaTypes)
         {
-            this.ContentTypes.Add( VendorMediaTypes.WithSuffix(VendorMediaTypes.WithHateoas(t), "json"));
             this.ContentTypes.Add(VendorMediaTypes.WithSuffix(t, "json"));
+            this.ContentTypes.Add($"{VendorMediaTypes.WithSuffix(t, "json")}; hateoas=true");
         }
     }
 }
