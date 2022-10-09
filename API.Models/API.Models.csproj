@@ -11,4 +11,8 @@
       <PackageReference Include="JetBrains.Annotations" Version="2022.1.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\API.Cache\API.Cache.csproj" />
+    </ItemGroup>
+
 </Project>

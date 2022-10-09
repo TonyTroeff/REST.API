@@ -1,4 +1,5 @@
 using System.Reflection;
+using API.Cache.Configuration;
 using API.Configuration;
 using API.Models.Configuration;
 using Core.Configuration;
@@ -103,6 +104,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.ConfigureApiModelValidators();
 builder.Services.ConfigureServices();
 builder.Services.ConfigureContentNegotiation();
+builder.Services.ConfigureCache();
 
 var app = builder.Build();
 
@@ -124,6 +126,7 @@ app.UseHttpsRedirection();
 // We will not be talking about authentication and authorization strategies and best practices at the seminar as this is a completely different (and complex) topic that deserves a separate seminar on its own. 
 // app.UseAuthorization();
 
+app.UseCache();
 app.MapControllers();
 
 await app.RunAsync();

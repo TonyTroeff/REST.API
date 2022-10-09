@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Data.PostgreSql", "Data.Pos
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "API.Models", "API.Models\API.Models.csproj", "{9BD03DD3-12B9-4A9B-B251-CCBB1F55C619}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "API.Cache", "API.Cache\API.Cache.csproj", "{A9667B8D-941C-482D-A34D-B6FFB35097C8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,5 +44,9 @@ Global
 		{9BD03DD3-12B9-4A9B-B251-CCBB1F55C619}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9BD03DD3-12B9-4A9B-B251-CCBB1F55C619}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9BD03DD3-12B9-4A9B-B251-CCBB1F55C619}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9667B8D-941C-482D-A34D-B6FFB35097C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9667B8D-941C-482D-A34D-B6FFB35097C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9667B8D-941C-482D-A34D-B6FFB35097C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9667B8D-941C-482D-A34D-B6FFB35097C8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
