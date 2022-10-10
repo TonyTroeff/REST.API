@@ -5,7 +5,6 @@ using API.Cache.Contracts;
 
 public class InMemoryCacheStore : ICacheStore
 {
-    private readonly ConcurrentDictionary<string, ConcurrentBag<CacheKey>> _keysByPath = new ();
     private readonly ConcurrentDictionary<CacheKey, CacheRecord> _cachedRecords = new ();
 
     public Task<CacheRecord> GetAsync(CacheKey key, CancellationToken cancellationToken) => Task.FromResult(this.GetInternally(key));
@@ -16,11 +15,7 @@ public class InMemoryCacheStore : ICacheStore
         return Task.CompletedTask;
     }
 
-    public Task InvalidateAsync(string requestPath, CancellationToken cancellationToken)
-    {
-        this.InvalidateInternally(requestPath);
-        return Task.CompletedTask;
-    }
+    public Task<bool> InvalidateAsync(string requestPath, CancellationToken cancellationToken) => Task.FromResult(this.InvalidateInternally(requestPath));
 
     private CacheRecord GetInternally(CacheKey key)
     {
@@ -32,18 +27,28 @@ public class InMemoryCacheStore : ICacheStore
     {
         if (key is null || record is null) return;
 
-        if (string.IsNullOrWhiteSpace(key.RequestPath) == false)
-        {
-            var commonKeys = this._keysByPath.GetOrAdd(key.RequestPath, _ => new ConcurrentBag<CacheKey>());
-            commonKeys.Add(key);
-        }
-
         this._cachedRecords[key] = record;
     }
 
-    private void InvalidateInternally(string requestPath)
+    private bool InvalidateInternally(string requestPath)
     {
-        if (string.IsNullOrWhiteSpace(requestPath) || this._keysByPath.TryGetValue(requestPath, out var affectedKeys) == false) return;
-        foreach (var key in affectedKeys) this._cachedRecords.TryRemove(key, out _);
+        if (string.IsNullOrWhiteSpace(requestPath)) return false;
+
+        // NOTE: This is not the most optimal approach. For the in-memory scenario, you can use a tree to easily reduce the execution time of this logic.
+        HashSet<CacheKey> keysToInvalidate = new ();
+        foreach (var key in this._cachedRecords.Keys)
+        {
+            if (string.IsNullOrWhiteSpace(key.RequestPath) == false && key.RequestPath.StartsWith(key.RequestPath, StringComparison.OrdinalIgnoreCase))
+                keysToInvalidate.Add(key);
+        }
+
+        var success = true;
+        foreach (var key in keysToInvalidate)
+        {
+            if (this._cachedRecords.TryRemove(key, out _) == false) 
+                success = false;
+        }
+
+        return success;
     }
 }
