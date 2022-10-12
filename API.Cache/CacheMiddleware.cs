@@ -4,6 +4,7 @@ using API.Cache.Contracts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Net.Http.Headers;
 
+// In order to have a reliable and scalable cache infrastructure, we should have a persistent cache store (MongoDB, Redis) and a refined mechanism to define which requests would be affected by a successfully executed modification action (resulting in an optimal invalidation mechanism).
 public class CacheMiddleware
 {
     private static readonly string[] _varyingContextHeaders = { HeaderNames.Accept, HeaderNames.AcceptLanguage }; // NOTE: Potentially these should be configurable from the outside.
@@ -27,27 +28,29 @@ public class CacheMiddleware
 
         var cacheKey = GenerateCacheKey(request);
         var cacheRecord = await this._cacheStore.GetAsync(cacheKey, httpContent.RequestAborted);
+        var cacheWasHit = cacheRecord?.ETag is not null;
 
-        var skipRequestExecution = false;
-        if (cacheRecord?.ETag is not null)
+        bool skipRequestExecution;
+        if (isModificationRequest)
         {
-            if (!isModificationRequest)
-            {
-                skipRequestExecution = request.Headers.TryGetValue(HeaderNames.IfNoneMatch, out var ifNonMatch) && ETagEquals(cacheRecord.ETag, ifNonMatch.ToString(), useStrongComparison: false);
+            // If no cache record was found, we can assume that the cache has been previously invalidated and so it is safer to return 412 Precondition Failed and force the client to request the GET endpoint at the same route again. 
+            skipRequestExecution = request.Headers.TryGetValue(HeaderNames.IfMatch, out var ifMatch) && (!cacheWasHit || ETagEquals(cacheRecord.ETag, ifMatch.ToString(), useStrongComparison: true) == false);
 
-                if (skipRequestExecution) // We have a cache hit.
-                    response.StatusCode = StatusCodes.Status304NotModified;
-            }
-            else
-            {
-                skipRequestExecution = request.Headers.TryGetValue(HeaderNames.IfMatch, out var ifMatch) && ETagEquals(cacheRecord.ETag, ifMatch.ToString(), useStrongComparison: true) == false;
+            if (skipRequestExecution) // We have a cache miss or the ETag is different
+                response.StatusCode = StatusCodes.Status412PreconditionFailed;
+        }
+        else
+        {
+            skipRequestExecution = cacheWasHit && request.Headers.TryGetValue(HeaderNames.IfNoneMatch, out var ifNonMatch) && ETagEquals(cacheRecord.ETag, ifNonMatch.ToString(), useStrongComparison: false);
 
-                if (skipRequestExecution) // We have a failed pre-condition
-                    response.StatusCode = StatusCodes.Status412PreconditionFailed;
-            }
+            if (skipRequestExecution) // We have a cache hit and the ETag is still the same.
+                response.StatusCode = StatusCodes.Status304NotModified;
         }
 
-        if (skipRequestExecution) SetETag(response, cacheRecord.ETag);
+        if (skipRequestExecution)
+        {
+            if (cacheWasHit) SetETag(response, cacheRecord.ETag);
+        }
         else
         {
             // We use this revision number to handle race conditions.
