@@ -50,10 +50,13 @@ public class CacheMiddleware
         if (skipRequestExecution) SetETag(response, cacheRecord.ETag);
         else
         {
+            // We use this revision number to handle race conditions.
+            // If it has already expired when we try to set the cache record at the end, nothing should be stored.
+            var revisionNumber = await this._cacheStore.GetRevisionNumberAsync(cacheKey, httpContent.RequestAborted);
+            
             var cacheRecordFromResponse = await this.HandleResponse(httpContent, eTagGenerator);
 
-            // NOTE: It would be great if our cache store provides us with a mechanism to cope with potential race conditions. 
-            if (isModificationRequest && ResponseIsSuccessful(response)) await this._cacheStore.InvalidateAsync(cacheKey, httpContent.RequestAborted);
+            if (isModificationRequest && ResponseIsSuccessful(response)) revisionNumber = await this._cacheStore.InvalidateAsync(cacheKey, httpContent.RequestAborted);
 
             if (cacheRecordFromResponse is not null)
             {
@@ -65,7 +68,7 @@ public class CacheMiddleware
                     cacheKey = cacheKey with { RequestPath = createdAtRequestPath };
                 }
 
-                await this._cacheStore.SetAsync(cacheKey, cacheRecordFromResponse, httpContent.RequestAborted);
+                await this._cacheStore.SetAsync(revisionNumber, cacheKey, cacheRecordFromResponse, httpContent.RequestAborted);
             }
         }
     }

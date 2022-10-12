@@ -5,17 +5,15 @@ using API.Cache.Contracts;
 
 public class InMemoryCacheStore : ICacheStore
 {
+    private long _latestRevisionNumber;
     private readonly ConcurrentDictionary<CacheKey, CacheRecord> _cachedRecords = new ();
 
     public Task<CacheRecord> GetAsync(CacheKey key, CancellationToken cancellationToken) => Task.FromResult(this.GetInternally(key));
+    public Task<long> GetRevisionNumberAsync(CacheKey key, CancellationToken cancellationToken) => Task.FromResult(this._latestRevisionNumber);
 
-    public Task SetAsync(CacheKey key, CacheRecord record, CancellationToken cancellationToken)
-    {
-        this.SetInternally(key, record);
-        return Task.CompletedTask;
-    }
+    public Task<bool> SetAsync(long revisionNumber, CacheKey key, CacheRecord record, CancellationToken cancellationToken) => Task.FromResult(this.SetInternally(revisionNumber, key, record));
 
-    public Task<bool> InvalidateAsync(CacheKey cacheKey, CancellationToken cancellationToken) => Task.FromResult(this.InvalidateInternally(cacheKey));
+    public Task<long> InvalidateAsync(CacheKey cacheKey, CancellationToken cancellationToken) => Task.FromResult(this.InvalidateInternally(cacheKey));
 
     private CacheRecord GetInternally(CacheKey key)
     {
@@ -23,18 +21,19 @@ public class InMemoryCacheStore : ICacheStore
         return null;
     }
 
-    private void SetInternally(CacheKey key, CacheRecord record)
+    private bool SetInternally(long revisionNumber, CacheKey key, CacheRecord record)
     {
-        if (key is null || record is null) return;
+        if (key is null || record is null || this._latestRevisionNumber != revisionNumber) return false;
 
         this._cachedRecords[key] = record;
+        return true;
     }
 
-    private bool InvalidateInternally(CacheKey cacheKey)
+    private long InvalidateInternally(CacheKey cacheKey)
     {
         // NOTE: This is not an example of smart or optimal invalidation. We will invalidate all requests that have the same path root, e.g. if we modify a product, we will invalidate all shop requests.
         // It is possible to improve this behavior, however, since our time is limited, we can use this infrastructure as a figurative example of what should happen.
         this._cachedRecords.Clear();
-        return true;
+        return Interlocked.Increment(ref this._latestRevisionNumber);
     }
 }
