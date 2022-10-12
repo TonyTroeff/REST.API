@@ -15,7 +15,7 @@ public class InMemoryCacheStore : ICacheStore
         return Task.CompletedTask;
     }
 
-    public Task<bool> InvalidateAsync(string requestPath, CancellationToken cancellationToken) => Task.FromResult(this.InvalidateInternally(requestPath));
+    public Task<bool> InvalidateAsync(CacheKey cacheKey, CancellationToken cancellationToken) => Task.FromResult(this.InvalidateInternally(cacheKey));
 
     private CacheRecord GetInternally(CacheKey key)
     {
@@ -30,25 +30,11 @@ public class InMemoryCacheStore : ICacheStore
         this._cachedRecords[key] = record;
     }
 
-    private bool InvalidateInternally(string requestPath)
+    private bool InvalidateInternally(CacheKey cacheKey)
     {
-        if (string.IsNullOrWhiteSpace(requestPath)) return false;
-
-        // NOTE: This is not the most optimal approach. For the in-memory scenario, you can use a tree to easily reduce the execution time of this logic.
-        HashSet<CacheKey> keysToInvalidate = new ();
-        foreach (var key in this._cachedRecords.Keys)
-        {
-            if (string.IsNullOrWhiteSpace(key.RequestPath) == false && key.RequestPath.StartsWith(key.RequestPath, StringComparison.OrdinalIgnoreCase))
-                keysToInvalidate.Add(key);
-        }
-
-        var success = true;
-        foreach (var key in keysToInvalidate)
-        {
-            if (this._cachedRecords.TryRemove(key, out _) == false) 
-                success = false;
-        }
-
-        return success;
+        // NOTE: This is not an example of smart or optimal invalidation. We will invalidate all requests that have the same path root, e.g. if we modify a product, we will invalidate all shop requests.
+        // It is possible to improve this behavior, however, since our time is limited, we can use this infrastructure as a figurative example of what should happen.
+        this._cachedRecords.Clear();
+        return true;
     }
 }

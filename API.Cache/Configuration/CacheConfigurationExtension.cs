@@ -11,6 +11,7 @@ public static class CacheConfigurationExtension
         if (serviceCollection is null) throw new ArgumentNullException(nameof(serviceCollection));
 
         serviceCollection.AddSingleton<ICacheStore, InMemoryCacheStore>();
+        serviceCollection.AddSingleton<IETagGenerator, DefaultETagGenerator>();
     }
 
     public static void UseCache(this IApplicationBuilder applicationBuilder)
