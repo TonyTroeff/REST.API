@@ -53,7 +53,7 @@ public class ShopController : ControllerBase
         var shop = getExistingShop.Data;
         if (shop is null) return await this.CreateInternallyAsync(shopInputModel, shopId, cancellationToken);
 
-        this._mapper.Map(shopInputModel, shop);
+        this.MaterializeInputModel(shopInputModel, shop);
         var update = await this._shopService.UpdateAsync(shop, cancellationToken);
         if (!update.IsSuccessful) return this.Error(update);
         
@@ -112,7 +112,7 @@ public class ShopController : ControllerBase
 
     private async Task<IActionResult> CreateInternallyAsync(ShopInputModel inputModel, Guid? id, CancellationToken cancellationToken)
     {
-        var shop = this._mapper.Map<Shop>(inputModel);
+        var shop = this.MaterializeInputModel(inputModel);
         if (id.HasValue) shop.Id = id.Value;
 
         var create = await this._shopService.CreateAsync(shop, cancellationToken);
@@ -146,7 +146,9 @@ public class ShopController : ControllerBase
         if (formatDescriptor.WithHateoasLinks && viewModel is BaseEntityViewModel baseEntityViewModel) baseEntityViewModel.Links = this.GetLinks(shop);
 
         return viewModel;
-    }
+    }   
+    
+    private Shop MaterializeInputModel(ShopInputModel inputModel, Shop existingProduct = null) => this._mapper.Map(inputModel, existingProduct);
 
     private IEnumerable<HateoasLink> GetLinks(Shop shop)
     {

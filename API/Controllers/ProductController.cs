@@ -170,10 +170,7 @@ public class ProductController : ControllerBase
         return viewModel;
     }
 
-    private Product MaterializeInputModel(ProductInputModel inputModel, Guid shopId, Product existingProduct = null)
-    {
-        return this._mapper.Map(inputModel, existingProduct, options => options.Items["shop_id"] = shopId);
-    }
+    private Product MaterializeInputModel(ProductInputModel inputModel, Guid shopId, Product existingProduct = null) => this._mapper.Map(inputModel, existingProduct, options => options.Items["shop_id"] = shopId);
 
     private IEnumerable<HateoasLink> GetLinks(Product product)
     {
