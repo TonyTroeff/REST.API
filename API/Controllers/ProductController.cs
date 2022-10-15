@@ -47,6 +47,32 @@ public class ProductController : ControllerBase
         return await this.CreateInternallyAsync(shopId, productInputModel, id: null, cancellationToken);
     }
 
+    [HttpPut("{productId:guid}")]
+    public async Task<IActionResult> Update([FromRoute] Guid shopId, [FromRoute] Guid productId, [FromBody] ProductInputModel productInputModel, CancellationToken cancellationToken)
+    {
+        var shopIsAccessible = await this._shopService.ExistsAsync(shopId, cancellationToken);
+        if (!shopIsAccessible.IsSuccessful) return this.Error(shopIsAccessible);
+        if (!shopIsAccessible.Data) return this.NotFound();
+        
+        var validationResult = await this.ValidateAsync(productInputModel, cancellationToken);
+        if (validationResult is { IsValid: false }) return this.ValidationError(validationResult);
+
+        var getExistingProduct = await this._productService.GetAsync(productId, cancellationToken);
+        if (!getExistingProduct.IsSuccessful) return this.Error(getExistingProduct);
+
+        var product = getExistingProduct.Data;
+        if (product is null) return await this.CreateInternallyAsync(shopId, productInputModel, productId, cancellationToken);
+
+        this.MaterializeInputModel(productInputModel, shopId, product);
+        var update = await this._productService.UpdateAsync(product, cancellationToken);
+        if (!update.IsSuccessful) return this.Error(update);
+        
+        var getRepresentation = await this.GetRepresentationAsync(productId, cancellationToken);
+        if (!getRepresentation.IsSuccessful) return this.Error(getRepresentation);
+
+        return this.Ok(getRepresentation.Data); // We can also return "204 No content" here so the consumer of our API should decide whether or not to call the GetById endpoint explicitly after update.
+    }
+
     [HttpGet]
     public async Task<IActionResult> GetAll([FromRoute] Guid shopId, CancellationToken cancellationToken)
     {
@@ -81,6 +107,25 @@ public class ProductController : ControllerBase
         return this.Ok(product);
     }
 
+    [HttpDelete("{productId:guid}")]
+    public async Task<IActionResult> Delete([FromRoute] Guid shopId, [FromRoute] Guid productId, CancellationToken cancellationToken)
+    {
+        var shopIsAccessible = await this._shopService.ExistsAsync(shopId, cancellationToken);
+        if (!shopIsAccessible.IsSuccessful) return this.Error(shopIsAccessible);
+        if (!shopIsAccessible.Data) return this.NotFound();
+
+        var getProduct = await this._productService.GetAsync(productId, cancellationToken);
+        if (!getProduct.IsSuccessful) return this.Error(getProduct);
+
+        var product = getProduct.Data;
+        if (product is null) return this.NotFound();
+
+        var deleteProduct = await this._productService.DeleteAsync(product, cancellationToken);
+        if (!deleteProduct.IsSuccessful) return this.Error(deleteProduct);
+
+        return this.NoContent();
+    }
+
     private async Task<ValidationResult> ValidateAsync(ProductInputModel inputModel, CancellationToken cancellationToken)
     {
         if (this._validator is null) return null;
@@ -89,7 +134,7 @@ public class ProductController : ControllerBase
 
     private async Task<IActionResult> CreateInternallyAsync(Guid shopId, ProductInputModel inputModel, Guid? id, CancellationToken cancellationToken)
     {
-        var product = this._mapper.Map<Product>(inputModel, options => options.Items["shop_id"] = shopId);
+        var product = this.MaterializeInputModel(inputModel, shopId);
         if (id.HasValue) product.Id = id.Value;
 
         var create = await this._productService.CreateAsync(product, cancellationToken);
@@ -123,6 +168,11 @@ public class ProductController : ControllerBase
         if (formatDescriptor.WithHateoasLinks && viewModel is BaseEntityViewModel baseEntityViewModel) baseEntityViewModel.Links = this.GetLinks(product);
 
         return viewModel;
+    }
+
+    private Product MaterializeInputModel(ProductInputModel inputModel, Guid shopId, Product existingProduct = null)
+    {
+        return this._mapper.Map(inputModel, existingProduct, options => options.Items["shop_id"] = shopId);
     }
 
     private IEnumerable<HateoasLink> GetLinks(Product product)
