@@ -2,15 +2,16 @@
 
 using API.ContentNegotiation;
 using API.Extensions;
+using API.Models;
 using API.Models.Hateoas;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using API.Models.Shop;
 using Core.Contracts.Services;
+using Core.Options;
 using Data.Models;
 using FluentValidation;
 using FluentValidation.Results;
-using Microsoft.Net.Http.Headers;
 using Utilities;
 
 [ApiController]
@@ -40,52 +41,58 @@ public class ShopController : ControllerBase
         return await this.CreateInternallyAsync(shopInputModel, id: null, cancellationToken);
     }
 
-    [HttpPut("{id:guid}")]
-    public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] ShopInputModel shopInputModel, CancellationToken cancellationToken)
+    [HttpPut("{shopId:guid}")]
+    public async Task<IActionResult> Update([FromRoute] Guid shopId, [FromBody] ShopInputModel shopInputModel, CancellationToken cancellationToken)
     {
         var validationResult = await this.ValidateAsync(shopInputModel, cancellationToken);
         if (validationResult is { IsValid: false }) return this.ValidationError(validationResult);
 
-        var getExistingShop = await this._shopService.GetAsync(id, cancellationToken);
+        var getExistingShop = await this._shopService.GetAsync(shopId, cancellationToken);
         if (!getExistingShop.IsSuccessful) return this.Error(getExistingShop);
 
         var shop = getExistingShop.Data;
-        if (shop is null) return await this.CreateInternallyAsync(shopInputModel, id, cancellationToken);
+        if (shop is null) return await this.CreateInternallyAsync(shopInputModel, shopId, cancellationToken);
 
         this._mapper.Map(shopInputModel, shop);
         var update = await this._shopService.UpdateAsync(shop, cancellationToken);
         if (!update.IsSuccessful) return this.Error(update);
+        
+        var getRepresentation = await this.GetRepresentationAsync(shopId, cancellationToken);
+        if (!getRepresentation.IsSuccessful) return this.Error(getRepresentation);
 
-        return this.Ok(this.ToViewModel(shop)); // We can also return "204 No content" here so the consumer of our API should decide whether or not to call the GetById endpoint explicitly after update.
+        return this.Ok(getRepresentation.Data); // We can also return "204 No content" here so the consumer of our API should decide whether or not to call the GetById endpoint explicitly after update.
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
-        var getAllShops = await this._shopService.GetManyAsync(cancellationToken).ConfigureAwait(false);
+        var contentFormatDescriptor = this.GetContentFormatDescriptor(this._contentFormatManager);
+
+        var getOptions = new QueryEntityOptions<Shop>().WithContentFormatSpecifics(contentFormatDescriptor);
+        var getAllShops = await this._shopService.GetManyAsync(cancellationToken, getOptions);
         if (!getAllShops.IsSuccessful) return this.Error(getAllShops);
 
-        var viewModels = getAllShops.Data.OrEmptyIfNull().IgnoreNullValues().Select(this.ToViewModel);
+        var viewModels = getAllShops.Data.OrEmptyIfNull().IgnoreNullValues().Select(x => this.ToViewModel(x, contentFormatDescriptor));
         return this.Ok(viewModels);
     }
 
-    [HttpGet("{id:guid}")]
-    [HttpHead("{id:guid}")]
-    public async Task<IActionResult> GetById([FromRoute] Guid id, CancellationToken cancellationToken)
+    [HttpGet("{shopId:guid}")]
+    [HttpHead("{shopId:guid}")]
+    public async Task<IActionResult> GetById([FromRoute] Guid shopId, CancellationToken cancellationToken)
     {
-        var getShop = await this._shopService.GetAsync(id, cancellationToken);
-        if (!getShop.IsSuccessful) return this.Error(getShop);
+        var getRepresentation = await this.GetRepresentationAsync(shopId, cancellationToken);
+        if (!getRepresentation.IsSuccessful) return this.Error(getRepresentation);
 
-        var shop = getShop.Data;
-        if (shop is null) return this.NotFound();
-
-        return this.Ok(this.ToViewModel(shop));
+        var representation = getRepresentation.Data;
+        if (representation is null) return this.NotFound();
+        
+        return this.Ok(representation);
     }
 
-    [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> Delete([FromRoute] Guid id, CancellationToken cancellationToken)
+    [HttpDelete("{shopId:guid}")]
+    public async Task<IActionResult> Delete([FromRoute] Guid shopId, CancellationToken cancellationToken)
     {
-        var getShop = await this._shopService.GetAsync(id, cancellationToken);
+        var getShop = await this._shopService.GetAsync(shopId, cancellationToken);
         if (!getShop.IsSuccessful) return this.Error(getShop);
 
         var shop = getShop.Data;
@@ -111,22 +118,34 @@ public class ShopController : ControllerBase
         var create = await this._shopService.CreateAsync(shop, cancellationToken);
         if (!create.IsSuccessful) return this.Error(create);
 
-        return this.CreatedAtAction("GetById", new { create.Data.Id }, this.ToViewModel(create.Data));
+        var getRepresentation = await this.GetRepresentationAsync(create.Data.Id, cancellationToken);
+        if (!getRepresentation.IsSuccessful) return this.Error(getRepresentation);
+        
+        return this.CreatedAtAction("GetById", new { ShopId = create.Data.Id }, getRepresentation.Data);
     }
 
-    private object ToViewModel(Shop shop)
+    private async Task<OperationResult<object>> GetRepresentationAsync(Guid id, CancellationToken cancellationToken)
     {
-        ContentFormatDescriptor formatDescriptor = null;
-        if (this.Request.Headers.TryGetValue(HeaderNames.Accept, out var acceptedMediaType)) formatDescriptor = this._contentFormatManager.GetContentFormat(acceptedMediaType);
-        if (formatDescriptor is null) formatDescriptor = this._contentFormatManager.GetDefaultContentFormat();
+        var operationResult = new OperationResult<object>();
         
-        return this._mapper.Map(shop, typeof(Shop), formatDescriptor.OutputType, ConfigureMappingProcess);
+        var contentFormatDescriptor = this.GetContentFormatDescriptor(this._contentFormatManager);
 
-        void ConfigureMappingProcess(IMappingOperationOptions<object, object> options)
-        {
-            if (options?.Items is null) throw new InvalidOperationException("Invalid mapping options were provided.");
-            if (formatDescriptor.WithHateoasLinks) options.Items["links"] = this.GetLinks(shop);
-        }
+        var getOptions = new QueryEntityOptions<Shop>().WithContentFormatSpecifics(contentFormatDescriptor);
+        var getShop = await this._shopService.GetAsync(id, cancellationToken, getOptions);
+        if (!getShop.IsSuccessful) return operationResult.AppendErrors(getShop);
+
+        var shop = getShop.Data;
+        if (shop is not null) operationResult.Data = this.ToViewModel(shop, contentFormatDescriptor);
+
+        return operationResult;
+    }
+
+    private object ToViewModel(Shop shop, ContentFormatDescriptor<Shop> formatDescriptor)
+    {
+        var viewModel = this._mapper.Map(shop, typeof(Shop), formatDescriptor.OutputType);
+        if (formatDescriptor.WithHateoasLinks && viewModel is BaseEntityViewModel baseEntityViewModel) baseEntityViewModel.Links = this.GetLinks(shop);
+
+        return viewModel;
     }
 
     private IEnumerable<HateoasLink> GetLinks(Shop shop)
@@ -135,8 +154,8 @@ public class ShopController : ControllerBase
 
         var links = new List<HateoasLink>(capacity: 2)
         {
-            new() { Url = this.AbsoluteActionUrl("GetById", "Shop", new { shop.Id }), Rel = "self", Method = HttpMethods.Get },
-            new() { Url = this.AbsoluteActionUrl("Delete", "Shop", new { shop.Id }), Rel = "delete", Method = HttpMethods.Delete }
+            new() { Url = this.AbsoluteActionUrl("GetById", "Shop", new { ShopId = shop.Id }), Rel = "self", Method = HttpMethods.Get },
+            new() { Url = this.AbsoluteActionUrl("Delete", "Shop", new { ShopId = shop.Id }), Rel = "delete", Method = HttpMethods.Delete }
         };
 
         return links;

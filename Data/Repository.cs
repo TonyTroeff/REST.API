@@ -55,13 +55,13 @@ public class Repository<TEntity> : IRepository<TEntity>
         return operationResult;
     }
 
-    public async Task<OperationResult<TEntity>> GetAsync(IEnumerable<Expression<Func<TEntity, bool>>> filters, CancellationToken cancellationToken)
+    public async Task<OperationResult<TEntity>> GetAsync(IEnumerable<Expression<Func<TEntity, bool>>> filters, IEnumerable<Func<IQueryable<TEntity>, IQueryable<TEntity>>> transforms, CancellationToken cancellationToken)
     {
         var operationResult = new OperationResult<TEntity>();
 
         try
         {
-            var result = await this._dbContext.Set<TEntity>().Filter(filters).FirstOrDefaultAsync(cancellationToken);
+            var result = await this._dbContext.Set<TEntity>().Filter(filters).Transform(transforms).FirstOrDefaultAsync(cancellationToken);
             operationResult.Data = result;
         }
         catch (Exception e)
@@ -90,13 +90,13 @@ public class Repository<TEntity> : IRepository<TEntity>
         return operationResult;
     }
 
-    public async Task<OperationResult<IEnumerable<TEntity>>> GetManyAsync(IEnumerable<Expression<Func<TEntity, bool>>> filters, CancellationToken cancellationToken)
+    public async Task<OperationResult<IEnumerable<TEntity>>> GetManyAsync(IEnumerable<Expression<Func<TEntity, bool>>> filters, IEnumerable<Func<IQueryable<TEntity>, IQueryable<TEntity>>> transforms, CancellationToken cancellationToken)
     {
         var operationResult = new OperationResult<IEnumerable<TEntity>>();
 
         try
         {
-            var result = await this._dbContext.Set<TEntity>().Filter(filters).ToListAsync(cancellationToken);
+            var result = await this._dbContext.Set<TEntity>().Filter(filters).Transform(transforms).ToListAsync(cancellationToken);
             operationResult.Data = result;
         }
         catch (Exception e)

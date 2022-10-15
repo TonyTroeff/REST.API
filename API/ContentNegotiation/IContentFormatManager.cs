@@ -4,8 +4,8 @@ using System.Diagnostics.CodeAnalysis;
 
 public interface IContentFormatManager<TEntity>
 {
-    ContentFormatDescriptor GetContentFormat(string mediaType);
+    ContentFormatDescriptor<TEntity> GetContentFormat(string mediaType);
     
     [return: NotNull]
-    ContentFormatDescriptor GetDefaultContentFormat();
+    ContentFormatDescriptor<TEntity> GetDefaultContentFormat();
 }

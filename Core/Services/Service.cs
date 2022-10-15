@@ -3,6 +3,7 @@
 using System.Linq.Expressions;
 using Core.Contracts.Options;
 using Core.Contracts.Services;
+using Core.Options;
 using FluentValidation;
 using Data.Contracts;
 using Utilities;
@@ -30,15 +31,27 @@ public class Service<TEntity> : IService<TEntity>
         return operationResult.WithData(anyEntityMatches.Data);
     }
 
+    public async Task<OperationResult<bool>> ExistsAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var operationResult = new OperationResult<bool>();
+        if (!operationResult.ValidateNotDefault(id)) return operationResult;
+
+        var idFilter = ConstructIdFilter(id);
+        var queryOptions = new QueryEntityOptions<TEntity>();
+        queryOptions.AddFilter(idFilter);
+
+        var anyAsync = await this.AnyAsync(cancellationToken, queryOptions);
+        if (!anyAsync.IsSuccessful) return operationResult.AppendErrors(anyAsync);
+        return operationResult.WithData(anyAsync.Data);
+    }
+
     public async Task<OperationResult<TEntity>> GetAsync(Guid id, CancellationToken cancellationToken, IQueryEntityOptions<TEntity> options = null)
     {
         var operationResult = new OperationResult<TEntity>();
         if (!operationResult.ValidateNotDefault(id)) return operationResult;
 
         var idFilter = ConstructIdFilter(id);
-        var allFilters = (options?.AdditionalFilters).OrEmptyIfNull().IgnoreNullValues().ConcatenateWith(idFilter).ToArray();
-
-        var getResult = await this._repository.GetAsync(allFilters, cancellationToken);
+        var getResult = await this._repository.GetAsync((options?.AdditionalFilters).OrEmptyIfNull().ConcatenateWith(idFilter), options?.Transforms, cancellationToken);
         if (!getResult.IsSuccessful) return operationResult.AppendErrors(getResult);
 
         return operationResult.WithData(getResult.Data);
@@ -48,9 +61,7 @@ public class Service<TEntity> : IService<TEntity>
     {
         var operationResult = new OperationResult<IEnumerable<TEntity>>();
 
-        var allFilters = (options?.AdditionalFilters).OrEmptyIfNull().IgnoreNullValues().ToArray();
-
-        var getResult = await this._repository.GetManyAsync(allFilters, cancellationToken);
+        var getResult = await this._repository.GetManyAsync(options?.AdditionalFilters, options?.Transforms, cancellationToken);
         if (!getResult.IsSuccessful) return operationResult.AppendErrors(getResult);
 
         return operationResult.WithData(getResult.Data);

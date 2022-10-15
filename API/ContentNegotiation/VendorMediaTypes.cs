@@ -5,6 +5,8 @@ public static class VendorMediaTypes
     private const string Prefix = "application/vnd.rest-api";
     public const string ShopFull = $"{Prefix}.shop-full";
     public const string ShopMinified = $"{Prefix}.shop-minified";
+    public const string ProductFull = $"{Prefix}.product-full";
+    public const string ProductMinified = $"{Prefix}.product-minified";
 
     public static string WithSuffix(string mediaType, string suffix)
     {

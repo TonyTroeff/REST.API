@@ -24,6 +24,20 @@ public class SeminarDbContext : DbContext
                 shopEntityBuilder.Property(s => s.Name).IsRequired().IsUnicode().HasColumnName("n");
                 shopEntityBuilder.Property(s => s.Address).IsRequired().IsUnicode().HasColumnName("a");
             });
+
+        modelBuilder.Entity<Product>(
+            productEntityBuilder =>
+            {
+                productEntityBuilder.ToTable("Products");
+                UseDefaultConfiguration(productEntityBuilder);
+                productEntityBuilder.Property(p => p.Name).IsRequired().IsUnicode().HasColumnName("n");
+                productEntityBuilder.Property(p => p.Description).IsUnicode().HasColumnName("ds");
+                productEntityBuilder.Property(p => p.Distributor).IsRequired().IsUnicode().HasColumnName("dt");
+                productEntityBuilder.Property(p => p.Price).IsRequired().HasColumnName("p");
+                productEntityBuilder.Property(p => p.ShopId).IsRequired().HasColumnName("shid");
+
+                productEntityBuilder.HasOne(p => p.Shop).WithMany(s => s.Products).HasForeignKey(p => p.ShopId);
+            });
     }
 
     private static void UseDefaultConfiguration<TEntity>(EntityTypeBuilder<TEntity> entityTypeBuilder)

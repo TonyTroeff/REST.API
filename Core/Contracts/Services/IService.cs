@@ -8,6 +8,7 @@ public interface IService<TEntity>
     where TEntity : class, IEntity
 {
     Task<OperationResult<bool>> AnyAsync(CancellationToken cancellationToken, IQueryEntityOptions<TEntity> options = null);
+    Task<OperationResult<bool>> ExistsAsync(Guid id, CancellationToken cancellationToken);
     Task<OperationResult<TEntity>> GetAsync(Guid id, CancellationToken cancellationToken, IQueryEntityOptions<TEntity> options = null);
     Task<OperationResult<IEnumerable<TEntity>>> GetManyAsync(CancellationToken cancellationToken, IQueryEntityOptions<TEntity> options = null);
     Task<OperationResult<TEntity>> CreateAsync(TEntity entity, CancellationToken cancellationToken);

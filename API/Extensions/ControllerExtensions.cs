@@ -1,9 +1,11 @@
 ﻿namespace API.Extensions;
 
+using API.ContentNegotiation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Net.Http.Headers;
 using Utilities;
 
 public static class ControllerExtensions

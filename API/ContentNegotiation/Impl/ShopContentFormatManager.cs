@@ -2,9 +2,19 @@
 
 using API.Models.Shop;
 using Data.Models;
+using Microsoft.EntityFrameworkCore;
 
 public class ShopContentFormatManager : BaseContentFormatManager<Shop>
 {
-    protected override ContentFormatDescriptor Default { get; } = new (typeof(ShopFullViewModel), true);
-    protected override IDictionary<string, Type> SupportedVendors { get; } = new Dictionary<string, Type> { { VendorMediaTypes.ShopFull, typeof(ShopFullViewModel) }, { VendorMediaTypes.ShopMinified, typeof(ShopMinifiedViewModel) } };
+    public ShopContentFormatManager()
+    {
+        this.AddVendor(VendorMediaTypes.ShopFull, typeof(ShopFullViewModel), IncludeProducts);
+        this.AddVendor(VendorMediaTypes.ShopMinified, typeof(ShopMinifiedViewModel));
+    }
+
+    private static IQueryable<Shop> IncludeProducts(IQueryable<Shop> queryable)
+    {
+        if (queryable is null) throw new ArgumentNullException(nameof(queryable));
+        return queryable.Include(s => s.Products);
+    }
 }

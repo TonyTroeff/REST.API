@@ -11,5 +11,6 @@ public static class ContentNegotiationConfiguration
         if (serviceCollection is null) throw new ArgumentNullException(nameof(serviceCollection));
 
         serviceCollection.AddSingleton<IContentFormatManager<Shop>, ShopContentFormatManager>();
+        serviceCollection.AddSingleton<IContentFormatManager<Product>, ProductContentFormatManager>();
     }
 }
