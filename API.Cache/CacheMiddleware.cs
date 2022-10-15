@@ -22,7 +22,6 @@ public class CacheMiddleware
     public async Task Invoke(HttpContext httpContent, IETagGenerator eTagGenerator)
     {
         var request = httpContent.Request;
-        var isModificationRequest = IsModificationRequest(request);
 
         var response = httpContent.Response;
 
@@ -30,8 +29,8 @@ public class CacheMiddleware
         var cacheRecord = await this._cacheStore.GetAsync(cacheKey, httpContent.RequestAborted);
         var cacheWasHit = cacheRecord?.ETag is not null;
 
-        bool skipRequestExecution;
-        if (isModificationRequest)
+        var skipRequestExecution = false;
+        if (HttpMethods.IsPut(request.Method) || HttpMethods.IsDelete(request.Method)) // Depending on some explicit circumstances, POST calls may be included here (but this is very negotiable).
         {
             // If no cache record was found, we can assume that the cache has been previously invalidated and so it is safer to return 412 Precondition Failed and force the client to request the GET endpoint at the same route again. 
             skipRequestExecution = request.Headers.TryGetValue(HeaderNames.IfMatch, out var ifMatch) && (!cacheWasHit || ETagEquals(cacheRecord.ETag, ifMatch.ToString(), useStrongComparison: true) == false);
@@ -39,7 +38,7 @@ public class CacheMiddleware
             if (skipRequestExecution) // We have a cache miss or the ETag is different
                 response.StatusCode = StatusCodes.Status412PreconditionFailed;
         }
-        else
+        else if (HttpMethods.IsGet(request.Method) || HttpMethods.IsHead(request.Method))
         {
             skipRequestExecution = cacheWasHit && request.Headers.TryGetValue(HeaderNames.IfNoneMatch, out var ifNonMatch) && ETagEquals(cacheRecord.ETag, ifNonMatch.ToString(), useStrongComparison: false);
 
@@ -59,6 +58,7 @@ public class CacheMiddleware
             
             var cacheRecordFromResponse = await this.HandleResponse(httpContent, eTagGenerator);
 
+            var isModificationRequest = HttpMethods.IsPost(request.Method) || HttpMethods.IsPut(request.Method) || HttpMethods.IsDelete(request.Method);
             if (isModificationRequest && ResponseIsSuccessful(response)) revisionNumber = await this._cacheStore.InvalidateAsync(cacheKey, httpContent.RequestAborted);
 
             if (cacheRecordFromResponse is not null)
@@ -116,8 +116,6 @@ public class CacheMiddleware
 
         return generatedRecord;
     }
-
-    private static bool IsModificationRequest(HttpRequest request) => request.Method == HttpMethods.Put || request.Method == HttpMethods.Delete; // You can think about post/patch methods
 
     private static CacheKey GenerateCacheKey(HttpRequest request)
     {
