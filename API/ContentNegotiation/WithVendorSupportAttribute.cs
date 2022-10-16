@@ -7,12 +7,15 @@ using Microsoft.AspNetCore.Mvc;
 public class WithVendorSupportAttribute : ProducesAttribute
 {
     public WithVendorSupportAttribute(params string[] supportedVendorMediaTypes)
-        : base (MediaTypeNames.Application.Json)
+        : base(MediaTypeNames.Application.Json)
     {
         foreach (var t in supportedVendorMediaTypes)
         {
-            this.ContentTypes.Add(VendorMediaTypes.WithSuffix(t, "json"));
-            this.ContentTypes.Add($"{VendorMediaTypes.WithSuffix(t, "json")}; hateoas=true");
+            foreach (var s in VendorMediaTypes.SupportedSuffixes)
+            {
+                this.ContentTypes.Add(VendorMediaTypes.WithSuffix(t, s));
+                this.ContentTypes.Add($"{VendorMediaTypes.WithSuffix(t, s)}; hateoas=true");
+            }
         }
     }
 }

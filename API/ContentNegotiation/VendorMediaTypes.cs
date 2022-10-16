@@ -8,6 +8,8 @@ public static class VendorMediaTypes
     public const string ProductFull = $"{Prefix}.product-full";
     public const string ProductMinified = $"{Prefix}.product-minified";
 
+    public static IReadOnlyCollection<string> SupportedSuffixes { get; } = new List<string>(capacity: 1) { "json" }.AsReadOnly();
+
     public static string WithSuffix(string mediaType, string suffix)
     {
         if (string.IsNullOrWhiteSpace(mediaType)) return string.Empty;
