@@ -154,10 +154,13 @@ public class ShopController : ControllerBase
     {
         if (shop is null) return Enumerable.Empty<HateoasLink>();
 
-        var links = new List<HateoasLink>(capacity: 2)
+        var links = new List<HateoasLink>(capacity: 5)
         {
             new() { Url = this.AbsoluteActionUrl("GetById", "Shop", new { ShopId = shop.Id }), Rel = "self", Method = HttpMethods.Get },
-            new() { Url = this.AbsoluteActionUrl("Delete", "Shop", new { ShopId = shop.Id }), Rel = "delete", Method = HttpMethods.Delete }
+            new() { Url = this.AbsoluteActionUrl("Update", "Shop", new { ShopId = shop.Id }), Rel = "update", Method = HttpMethods.Put },
+            new() { Url = this.AbsoluteActionUrl("Delete", "Shop", new { ShopId = shop.Id }), Rel = "delete", Method = HttpMethods.Delete },
+            new() { Url = this.AbsoluteActionUrl("GetAll", "Product", new { ShopId = shop.Id }), Rel = "products", Method = HttpMethods.Get },
+            new() { Url = this.AbsoluteActionUrl("Create", "Product", new { ShopId = shop.Id }), Rel = "create_product", Method = HttpMethods.Post },
         };
 
         return links;

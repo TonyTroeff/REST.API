@@ -178,7 +178,9 @@ public class ProductController : ControllerBase
 
         var links = new List<HateoasLink>(capacity: 2)
         {
-            new() { Url = this.AbsoluteActionUrl("GetById", "Product", new { product.ShopId, ProductId = product.Id }), Rel = "self", Method = HttpMethods.Get }
+            new() { Url = this.AbsoluteActionUrl("GetById", "Product", new { product.ShopId, ProductId = product.Id }), Rel = "self", Method = HttpMethods.Get },
+            new() { Url = this.AbsoluteActionUrl("Update", "Product", new { product.ShopId, ProductId = product.Id }), Rel = "update", Method = HttpMethods.Put },
+            new() { Url = this.AbsoluteActionUrl("Delete", "Product", new { product.ShopId, ProductId = product.Id }), Rel = "delete", Method = HttpMethods.Delete },
         };
 
         return links;
