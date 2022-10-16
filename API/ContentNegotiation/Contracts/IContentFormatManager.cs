@@ -1,4 +1,4 @@
-﻿namespace API.ContentNegotiation;
+﻿namespace API.ContentNegotiation.Contracts;
 
 using System.Diagnostics.CodeAnalysis;
 

@@ -1,14 +1,12 @@
 ﻿namespace API.Profiles;
 
-using AutoMapper;
 using API.Models;
+using AutoMapper;
 using Data.Models;
-using JetBrains.Annotations;
 
-[UsedImplicitly]
-public class BaseProfile : Profile
+public class BaseEntityProfile : Profile
 {
-    public BaseProfile()
+    public BaseEntityProfile()
     {
         this.CreateMap<BaseEntity, BaseEntityViewModel>();
     }

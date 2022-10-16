@@ -1,5 +1,6 @@
 ﻿namespace API.ContentNegotiation;
 
+using API.ContentNegotiation.Contracts;
 using Microsoft.Net.Http.Headers;
 
 public abstract class BaseContentFormatManager<TEntity> : IContentFormatManager<TEntity>

@@ -1,10 +1,11 @@
 ﻿namespace API.Configuration;
 
 using API.ContentNegotiation;
+using API.ContentNegotiation.Contracts;
 using API.ContentNegotiation.Impl;
 using Data.Models;
 
-public static class ContentNegotiationConfiguration
+public static class ContentNegotiationConfigurationExtensions
 {
     public static void ConfigureContentNegotiation(this IServiceCollection serviceCollection)
     {

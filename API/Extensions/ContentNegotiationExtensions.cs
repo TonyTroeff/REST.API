@@ -1,6 +1,7 @@
 ﻿namespace API.Extensions;
 
 using API.ContentNegotiation;
+using API.ContentNegotiation.Contracts;
 using Core.Options;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;

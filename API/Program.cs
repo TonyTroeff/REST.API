@@ -1,7 +1,5 @@
 using System.Reflection;
-using API.Cache.Configuration;
 using API.Configuration;
-using API.Models.Configuration;
 using Core.Configuration;
 using Data.Configuration;
 using Microsoft.AspNetCore.Mvc;

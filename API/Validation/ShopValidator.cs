@@ -1,10 +1,8 @@
-﻿namespace API.Models.Validation;
+﻿namespace API.Validation;
 
 using API.Models.Shop;
 using FluentValidation;
-using JetBrains.Annotations;
 
-[UsedImplicitly]
 public class ShopValidator : AbstractValidator<ShopInputModel>
 {
     public ShopValidator()

@@ -1,4 +1,4 @@
-﻿namespace API.Models.Configuration;
+﻿namespace API.Configuration;
 
 using System.Reflection;
 using FluentValidation;

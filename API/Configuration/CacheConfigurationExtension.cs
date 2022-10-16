@@ -1,5 +1,6 @@
-﻿namespace API.Cache.Configuration;
+﻿namespace API.Configuration;
 
+using API.Cache;
 using API.Cache.Contracts;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;

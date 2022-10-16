@@ -4,9 +4,7 @@ using API.Models;
 using API.Models.Product;
 using AutoMapper;
 using Data.Models;
-using JetBrains.Annotations;
 
-[UsedImplicitly]
 public class ProductProfile : Profile
 {
     public ProductProfile()
