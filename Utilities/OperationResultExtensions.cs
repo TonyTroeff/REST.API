@@ -43,7 +43,7 @@ public static class OperationResultExtensions
         if (operationResult is null) throw new ArgumentNullException(nameof(operationResult));
         if (exception is null) return;
 
-        var error = new Error { Message = exception.Message };
+        var error = new Error { IsNotExpected = true, Message = exception.Message };
         operationResult.AddError(error);
     }
 

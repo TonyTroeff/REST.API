@@ -15,7 +15,8 @@ public static class ControllerExtensions
         if (controller is null) throw new ArgumentNullException(nameof(controller));
         if (operationResult is null) throw new ArgumentNullException(nameof(operationResult));
 
-        return controller.Problem(operationResult.ToString(), controller.Request.Path, StatusCodes.Status400BadRequest, "Your actions was not executed successfully.");
+        var statusCode = operationResult.Errors.Any(e => e.IsNotExpected) ? StatusCodes.Status500InternalServerError : StatusCodes.Status400BadRequest;
+        return controller.Problem(operationResult.ToString(), controller.Request.Path, statusCode, "Your actions was not executed successfully.");
     }
 
     public static ActionResult ValidationError(this ControllerBase controller, ValidationResult validationResult)
