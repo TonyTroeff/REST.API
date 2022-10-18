@@ -119,8 +119,8 @@ public class CacheMiddleware
 
     private static CacheKey GenerateCacheKey(HttpRequest request)
     {
-        var requestPath = request.Path.HasValue ? request.Path.Value.ToLowerInvariant() : string.Empty;
-        var queryString = request.QueryString.HasValue ? request.QueryString.Value.ToLowerInvariant() : string.Empty;
+        var requestPath = request.Path.Value?.ToLowerInvariant() ?? string.Empty;
+        var queryString = request.QueryString.Value?.ToLowerInvariant() ?? string.Empty;
 
         var varyingHeaderValues = _varyingContextHeaders.Select(vch => request.Headers.TryGetValue(vch, out var val) ? val.ToString() : string.Empty);
         var varyingContext = string.Join('-', varyingHeaderValues);
