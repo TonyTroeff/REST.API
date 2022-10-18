@@ -72,24 +72,6 @@ public class Repository<TEntity> : IRepository<TEntity>
         return operationResult;
     }
 
-    public async Task<OperationResult<TLayout>> GetAsync<TLayout>(IEnumerable<Expression<Func<TEntity, bool>>> filters, Expression<Func<TEntity, TLayout>> projection, CancellationToken cancellationToken)
-    {
-        var operationResult = new OperationResult<TLayout>();
-
-        try
-        {
-            var result = await this._dbContext.Set<TEntity>().Filter(filters).Select(projection).FirstOrDefaultAsync(cancellationToken);
-            operationResult.Data = result;
-        }
-
-        catch (Exception e)
-        {
-            operationResult.AddException(e);
-        }
-
-        return operationResult;
-    }
-
     public async Task<OperationResult<IEnumerable<TEntity>>> GetManyAsync(IEnumerable<Expression<Func<TEntity, bool>>> filters, IEnumerable<Func<IQueryable<TEntity>, IQueryable<TEntity>>> transforms, CancellationToken cancellationToken)
     {
         var operationResult = new OperationResult<IEnumerable<TEntity>>();
@@ -99,24 +81,6 @@ public class Repository<TEntity> : IRepository<TEntity>
             var result = await this._dbContext.Set<TEntity>().Filter(filters).Transform(transforms).ToListAsync(cancellationToken);
             operationResult.Data = result;
         }
-        catch (Exception e)
-        {
-            operationResult.AddException(e);
-        }
-
-        return operationResult;
-    }
-
-    public async Task<OperationResult<IEnumerable<TLayout>>> GetManyAsync<TLayout>(IEnumerable<Expression<Func<TEntity, bool>>> filters, Expression<Func<TEntity, TLayout>> projection, CancellationToken cancellationToken)
-    {
-        var operationResult = new OperationResult<IEnumerable<TLayout>>();
-
-        try
-        {
-            var result = await this._dbContext.Set<TEntity>().Filter(filters).Select(projection).ToListAsync(cancellationToken);
-            operationResult.Data = result;
-        }
-
         catch (Exception e)
         {
             operationResult.AddException(e);
