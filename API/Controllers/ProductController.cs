@@ -1,6 +1,7 @@
 ﻿namespace API.Controllers;
 
 using API.ContentNegotiation;
+using API.ContentNegotiation.Attributes;
 using API.ContentNegotiation.Contracts;
 using API.Extensions;
 using API.Models;

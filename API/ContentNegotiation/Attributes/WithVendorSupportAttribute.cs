@@ -1,4 +1,4 @@
-﻿namespace API.ContentNegotiation;
+﻿namespace API.ContentNegotiation.Attributes;
 
 using System.Net.Mime;
 using Microsoft.AspNetCore.Mvc;

@@ -1,6 +1,5 @@
 ﻿namespace API.Configuration;
 
-using API.ContentNegotiation;
 using API.ContentNegotiation.Contracts;
 using API.ContentNegotiation.Impl;
 using Data.Models;

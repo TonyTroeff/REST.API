@@ -1,4 +1,4 @@
-﻿namespace API.ContentNegotiation;
+﻿namespace API.ContentNegotiation.Attributes;
 
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
 using Microsoft.Net.Http.Headers;
